@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     supabase_service_key: str
     supabase_bucket_name: str
     clerk_secret_key: str
+    elevenlabs_api_key: str
 
     class Config:
         env_file = ".env"
