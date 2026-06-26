@@ -2,29 +2,41 @@
 
 A web app that helps voice artists detect when AI companies are using their voice without permission.
 
+## What works right now
+
+- **Name scan** — searches ElevenLabs by artist name, downloads preview audio for each match, fingerprints it, and compares against the artist's uploaded sample using cosine similarity
+- **URL scan** — if an ElevenLabs voice URL is pasted, extracts the voice ID, fetches the preview audio, and runs the same comparison
+- **Auth** — Clerk sign in/sign up, all scan routes are protected
+- **Scan history** — authenticated users can view all their past scans
+
+## Known limitations
+
+- Name scan only searches ElevenLabs' 21 default voices — user-cloned voices in the Voice Library require a paid ElevenLabs plan
+- URL scan only works for default ElevenLabs voice URLs, not Voice Library voices (same free tier restriction)
+
 ## How it works
 
-1. A voice artist uploads a short audio sample of their voice
-2. The app fingerprints it using [resemblyzer](https://github.com/resemble-ai/Resemblyzer), generating a 256-dimensional voice embedding
-3. Two scans run in parallel via Celery:
-   - **URL scan** — downloads audio from a suspicious URL the artist pastes, fingerprints it, and compares embeddings
-   - **Name scan** — searches ElevenLabs for voices matching the artist's name, downloads samples, and compares embeddings
-4. Cosine similarity is computed between the artist's embedding and each result
-5. Results are ranked by confidence score and returned to the frontend
+1. Artist signs in and uploads a short audio sample + enters their name
+2. The backend fingerprints the audio using [resemblyzer](https://github.com/resemble-ai/Resemblyzer), producing a 256-dimensional voice embedding
+3. Two Celery tasks run in parallel:
+   - **Name scan** — searches ElevenLabs for voices matching the artist's name, downloads preview audio, fingerprints each, computes cosine similarity
+   - **URL scan** — if a suspicious URL was pasted, extracts the voice ID, downloads preview audio, runs the same comparison
+4. Results with confidence scores are stored in Postgres and returned to the frontend via polling
 
 ## API
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/scans` | Submit a new scan (audio + artist name + optional URL) |
+| `POST` | `/scans` | Submit a scan (multipart: audio file + artist name + optional URL) |
 | `GET` | `/scans/{scan_id}` | Poll for scan status and results |
 | `GET` | `/scans` | Get the authenticated user's scan history |
+
+All routes require a Clerk JWT in the `Authorization: Bearer <token>` header.
 
 ## Prerequisites
 
 - Python 3.11+
 - Node.js 18+
-- Redis (for Celery task queue)
 
 ## Setup
 
@@ -44,18 +56,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the `backend/` directory:
+Create a `.env` file in `backend/`:
 
 ```
 DATABASE_URL=postgresql://...
-REDIS_URL=redis://localhost:6379
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your-service-role-key
-SUPABASE_BUCKET_NAME=audio
+REDIS_URL=rediss://:your-upstash-password@your-host.upstash.io:6379
 CLERK_SECRET_KEY=sk_test_...
+ELEVENLABS_API_KEY=...
 ```
 
-Run the database migrations:
+Run the database migration:
 
 ```bash
 alembic upgrade head
@@ -67,7 +77,7 @@ Start the FastAPI server:
 uvicorn main:app --reload
 ```
 
-Start the Celery worker (in a separate terminal, inside `backend/` with venv active):
+Start the Celery worker in a separate terminal:
 
 ```bash
 celery -A workers.celery_app worker --loglevel=info
@@ -80,7 +90,7 @@ cd frontend
 npm install
 ```
 
-Create a `.env` file in the `frontend/` directory:
+Create a `.env` file in `frontend/`:
 
 ```
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
@@ -93,12 +103,13 @@ Start the dev server:
 npm run dev
 ```
 
-## Services needed
+Open `http://localhost:5173`.
+
+## Services
 
 | Service | Purpose | Free tier |
 |---|---|---|
 | [Neon](https://neon.tech) | Postgres database | Yes |
-| [Supabase](https://supabase.com) | Audio file storage | Yes |
+| [Upstash](https://upstash.com) | Hosted Redis for Celery | Yes |
 | [Clerk](https://clerk.com) | Authentication | Yes |
-| [Redis](https://redis.io) | Celery task queue | Run locally |
-| [ElevenLabs](https://elevenlabs.io) | Voice search API | Yes |
+| [ElevenLabs](https://elevenlabs.io) | Voice search API | Yes (limited) |
