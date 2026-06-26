@@ -1,122 +1,66 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from '@clerk/clerk-react'
+import ScanPage from './pages/ScanPage'
+import HistoryPage from './pages/HistoryPage'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <BrowserRouter>
+      <div className="vg-root">
+        <header className="vg-header">
+          <span className="vg-mic">🎙</span>
+          <h1>PATH OF VO</h1>
+          <p>DETECT UNAUTHORIZED AI CLONES OF YOUR VOICE</p>
+          <nav className="vg-nav">
+            <Link to="/">Scan</Link>
+            <SignedIn>
+              <Link to="/history">History</Link>
+            </SignedIn>
+          </nav>
+          <div className="vg-auth">
+            <SignedOut>
+              <SignInButton mode="modal" />
+              <SignUpButton mode="modal" />
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </div>
+        </header>
 
-      <div className="ticks"></div>
+        <main className="vg-main">
+          <SignedIn>
+            <Routes>
+              <Route path="/" element={<ScanPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+            </Routes>
+          </SignedIn>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <SignedOut>
+            <section className="vg-card vg-signin-prompt">
+              <h2>SIGN IN TO SCAN</h2>
+              <p>Create a free account to get started.</p>
+              <SignInButton mode="modal" />
+            </section>
+          </SignedOut>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          <section className="vg-card vg-legal">
+            <h2>Legal Resources</h2>
+            <div className="vg-legal-links">
+              <a href="https://navavoices.org/2025/04/09/endorsing-nava-endorses-the-no-fakes-act-2025/" target="_blank" rel="noopener noreferrer">
+                📜 NO FAKES Act 2025
+              </a>
+              <a href="https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260AB412" target="_blank" rel="noopener noreferrer">
+                ⚖️ California AB-412
+              </a>
+              <a href="https://navavoices.org" target="_blank" rel="noopener noreferrer">
+                🎙️ NAVA — Register AI Rider
+              </a>
+            </div>
+          </section>
+        </main>
+      </div>
+    </BrowserRouter>
   )
 }
-
-export default App

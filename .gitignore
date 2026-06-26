@@ -3,11 +3,12 @@ frontend/node_modules
 frontend/dist
 frontend/dist-ssr
 frontend/.local
+frontend/.env
 
 # Backend
 backend/venv
-backend/__pycache__
-backend/*.pyc
+backend/**/__pycache__
+backend/**/*.pyc
 backend/.env
 
 # OS
